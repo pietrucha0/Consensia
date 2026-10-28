@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.github
+.env
+.env.*
+!.env.example
+storage
+src/generated
+tests
+*.tsbuildinfo
+npm-debug.log*
+.impeccable
+.claude
+Dockerfile
+docker-compose.yml

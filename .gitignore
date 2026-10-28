@@ -1,0 +1,27 @@
+node_modules/
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Prisma client output
+src/generated/
+
+# env files (keep the example)
+.env
+.env*.local
+
+.DS_Store
+npm-debug.log*
+.vercel
+
+# Uploaded files (local storage driver)
+storage/
+
+# Impeccable machine-local settings
+.impeccable/config.local.json
+
+# Platform-specific skill binaries (large; reinstall the skill on a new machine)
+.claude/skills/*/scripts/bin/
+.claude/settings.local.json

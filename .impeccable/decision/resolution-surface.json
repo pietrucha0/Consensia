@@ -1,0 +1,83 @@
+{
+  "title": "Ekran uchwały i głosowania",
+  "question": "Trzy układy ekranu uchwały (kolory i komponenty zostają bez zmian). Wybierz jeden, doprecyzuj albo wylosuj nowe.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Panel decyzji",
+      "kicker": "THE ROLL",
+      "lineage": "tablica stanu głosowania",
+      "thesis": "Stan głosowania na pierwszym planie: numer, status, termin i frekwencja w jednym pasku, karta głosowania tuż pod nim.",
+      "palette": ["#047857", "#10B981", "#0F172A", "#64748B", "#F8FAFC"],
+      "materials": ["karty i obramowania jak w artykułach", "Inter", "slate + szmaragd"],
+      "viewport": "Pasek stanu (Uchwała · Aktywna · do 30.09 · frekwencja po głosie), pod nim trzy równe kafle opcji i „Oddaj głos”; pełne uzasadnienie niżej.",
+      "risk": "Głosowanie jest nad tekstem — łatwiej zagłosować bez przeczytania uzasadnienia.",
+      "raised": [
+        { "from": "licznik nixie", "raise": "Frekwencja jako stały odczyt cyfrowy (23 / 41) o stałych miejscach cyfr — liczby są interfejsem." },
+        { "from": "peleryna ze ściągaczem", "raise": "Jedna decyzja przekształca kartę w miejscu: kafle opcji zamieniają się w paski wyników bez przeładowania." }
+      ],
+      "wireframe": {
+        "cols": 12,
+        "rows": 12,
+        "regions": [
+          { "label": "pasek stanu + frekwencja", "x": 0, "y": 0, "w": 12, "h": 1, "accent": true },
+          { "label": "tytuł uchwały", "x": 0, "y": 1, "w": 12, "h": 1 },
+          { "label": "Za", "x": 0, "y": 2, "w": 4, "h": 2 },
+          { "label": "Przeciw", "x": 4, "y": 2, "w": 4, "h": 2 },
+          { "label": "Wstrzymuję się", "x": 8, "y": 2, "w": 4, "h": 2 },
+          { "label": "Oddaj głos", "x": 8, "y": 4, "w": 4, "h": 1, "accent": true },
+          { "label": "uzasadnienie / treść", "x": 0, "y": 5, "w": 12, "h": 7 }
+        ]
+      }
+    },
+    {
+      "id": "stepper",
+      "label": "Ścieżka w czterech krokach",
+      "lineage": "prowadzone formularze urzędowe",
+      "thesis": "Głosowanie jako prowadzona ścieżka: Przeczytaj → Wybierz → Potwierdź → Gotowe; nie da się pominąć lektury uchwały.",
+      "palette": ["#047857", "#10B981", "#0F172A", "#64748B", "#F8FAFC"],
+      "materials": ["karty i obramowania jak w artykułach", "Inter", "slate + szmaragd"],
+      "viewport": "Pasek kroków u góry, pod nim tylko bieżący krok — najpierw pełny tekst z przyciskiem „Przeczytałem, przejdź do głosowania”.",
+      "risk": "Wolniej dla osób znających treść z zebrania; więcej kliknięć przy każdej uchwale.",
+      "raised": [
+        { "from": "tablice rocznika designu", "raise": "Krok „Gotowe” kończy się pieczęcią potwierdzenia z datą i godziną oddania głosu — dowód dla członka." }
+      ],
+      "wireframe": {
+        "cols": 12,
+        "rows": 12,
+        "regions": [
+          { "label": "1 Przeczytaj · 2 Wybierz · 3 Potwierdź · 4 Gotowe", "x": 0, "y": 0, "w": 12, "h": 1, "accent": true },
+          { "label": "bieżący krok (tekst uchwały)", "x": 1, "y": 1, "w": 10, "h": 9 },
+          { "label": "Dalej", "x": 7, "y": 10, "w": 4, "h": 1, "accent": true }
+        ]
+      }
+    },
+    {
+      "id": "protocol",
+      "label": "Protokół",
+      "lineage": "protokół uchwały wspólnoty",
+      "thesis": "Uchwała złożona jak oficjalny dokument: metryka w tabeli, treść, a na końcu rubryka głosowania, która po głosie staje się tabelą liczenia głosów.",
+      "palette": ["#047857", "#10B981", "#0F172A", "#64748B", "#F8FAFC"],
+      "materials": ["karty i obramowania jak w artykułach", "Inter", "slate + szmaragd"],
+      "viewport": "Jedna kolumna dokumentu: „Uchwała w sprawie…”, tabela metryki (otwarta, termin, status), treść, a na dole rubryka głosowania; na górze skrót „Przejdź do głosowania”.",
+      "risk": "Przy długim uzasadnieniu rubryka głosowania jest daleko w dół strony.",
+      "raised": [
+        { "from": "specimen kroju zmiennego", "raise": "Hierarchia wyłącznie przez skalę i wagę pisma — bez ozdobników, dodatkowych ramek i ikon." },
+        { "from": "opalizująca krawędź chmury", "raise": "Kolor tylko w cienkich krawędziach stanu; opcje pozostają achromatyczne, aby nic nie sugerowało odpowiedzi." }
+      ],
+      "wireframe": {
+        "cols": 12,
+        "rows": 12,
+        "regions": [
+          { "label": "Uchwała w sprawie…", "x": 2, "y": 0, "w": 8, "h": 2 },
+          { "label": "metryka: otwarta · termin · status", "x": 2, "y": 2, "w": 8, "h": 2 },
+          { "label": "treść / uzasadnienie", "x": 2, "y": 4, "w": 8, "h": 5 },
+          { "label": "rubryka głosowania → tabela wyników", "x": 2, "y": 9, "w": 8, "h": 3, "accent": true }
+        ]
+      }
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "canon": false
+}

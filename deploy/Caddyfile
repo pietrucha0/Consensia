@@ -1,0 +1,21 @@
+# Caddy obtains and renews the TLS certificate for $DOMAIN automatically
+# (the domain's DNS A/AAAA record must point at this server, ports 80/443 open).
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Uploads are capped at 5 MB by the app; leave headroom for multipart overhead.
+	request_body {
+		max_size 6MB
+	}
+
+	reverse_proxy app:3000 {
+		# The app's per-IP rate limits read X-Real-IP first. Always overwrite it with the
+		# real peer address, so a client cannot choose its own IP by sending the header.
+		header_up X-Real-IP {remote_host}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+}

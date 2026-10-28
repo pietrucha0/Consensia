@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T21:05:00+02:00",
+  "title": "Design System: Consensia",
+  "extensions": {
+    "colorMeta": {
+      "committed-emerald": { "role": "primary", "displayName": "Committed Emerald", "canonical": "#047857", "tonalRamp": ["#022c22", "#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#a7f3d0", "#ecfdf5"] },
+      "signal-emerald": { "role": "primary", "displayName": "Signal Emerald", "canonical": "#10b981", "tonalRamp": ["#022c22", "#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#a7f3d0", "#ecfdf5"] },
+      "ink-slate": { "role": "neutral", "displayName": "Ink Slate", "canonical": "#0f172a", "tonalRamp": ["#020617", "#0f172a", "#334155", "#64748b", "#94a3b8", "#e2e8f0", "#f1f5f9", "#f8fafc"] },
+      "quiet-slate": { "role": "neutral", "displayName": "Quiet Slate", "canonical": "#64748b", "tonalRamp": ["#020617", "#0f172a", "#334155", "#64748b", "#94a3b8", "#e2e8f0", "#f1f5f9", "#f8fafc"] },
+      "hall-floor": { "role": "neutral", "displayName": "Hall Floor", "canonical": "#f8fafc", "tonalRamp": ["#020617", "#0f172a", "#334155", "#64748b", "#94a3b8", "#e2e8f0", "#f1f5f9", "#f8fafc"] },
+      "alarm-red": { "role": "neutral", "displayName": "Alarm Red", "canonical": "#dc2626", "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#f87171", "#fecaca", "#fef2f2"] },
+      "caution-amber": { "role": "neutral", "displayName": "Caution Amber", "canonical": "#b45309", "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#d97706", "#fbbf24", "#fde68a", "#fffbeb"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Article and resolution titles." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles." },
+      "title": { "displayName": "Title", "purpose": "Section headings." },
+      "body": { "displayName": "Body", "purpose": "Reading text, 70ch measure for formal text." },
+      "label": { "displayName": "Label", "purpose": "Form labels, buttons, pills, metadata." },
+      "numeric": { "displayName": "Numeric", "purpose": "Result percentages; every count uses tabular figures." }
+    },
+    "shadows": [
+      { "name": "paper-xs", "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "purpose": "Tiles, inputs, buttons: separates paper from floor." },
+      { "name": "paper-sm", "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)", "purpose": "Cards and tables." },
+      { "name": "dialog-lg", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "purpose": "Confirmation dialogs only, over a 40% ink scrim." }
+    ],
+    "motion": [
+      { "name": "result-grow", "value": "width 700ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Result bars growing from zero when the ballot turns into results; disabled under reduced motion." },
+      { "name": "state-colour", "value": "color, background-color, border-color 150ms", "purpose": "Hover and selection changes." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The committed action: save, confirm a vote, open voting.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 12 2 2 4-4\"/><path d=\"M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z\"/><path d=\"M22 19H2\"/></svg>Oddaj głos</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 8px 16px; border: 0; border-radius: 8px; background: var(--primary, #047857); color: #fff; font: 500 14px/1 Inter, system-ui, sans-serif; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); cursor: pointer; transition: background-color 150ms; } .ds-btn-primary:hover { background: var(--primary-hover, #065f46); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, #059669 50%, transparent); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions: upload, open voting in lists, cancel.",
+      "html": "<button class=\"ds-btn-outline\">Anuluj</button>",
+      "css": ".ds-btn-outline { height: 40px; padding: 8px 16px; border: 1px solid var(--input, #94a3b8); border-radius: 8px; background: var(--card, #fff); color: var(--foreground, #0f172a); font: 500 14px/1 Inter, system-ui, sans-serif; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); cursor: pointer; transition: background-color 150ms, color 150ms; } .ds-btn-outline:hover { background: var(--accent, #ecfdf5); color: var(--accent-foreground, #065f46); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, #059669 50%, transparent); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Form input with a Field Edge border that stays distinct from card hairlines.",
+      "html": "<label class=\"ds-field\"><span>E-mail</span><input class=\"ds-input\" type=\"email\" placeholder=\"jan@example.com\"></label>",
+      "css": ".ds-field { display: grid; gap: 8px; font: 500 14px/1 Inter, system-ui, sans-serif; color: var(--foreground, #0f172a); } .ds-input { height: 40px; padding: 8px 12px; border: 1px solid var(--input, #94a3b8); border-radius: 8px; background: var(--card, #fff); color: var(--foreground, #0f172a); font: 400 14px Inter, system-ui, sans-serif; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); outline: none; } .ds-input::placeholder { color: var(--muted-foreground, #64748b); } .ds-input:focus-visible { border-color: var(--ring, #059669); box-shadow: 0 0 0 3px color-mix(in oklab, #059669 30%, transparent); }"
+    },
+    {
+      "name": "Main Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Header navigation; the active place sits on Meeting Mint. Wraps on phones.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\">Artykuły</a><a href=\"#\" aria-current=\"page\">Uchwały</a><a href=\"#\">Zarządzaj uchwałami</a></nav>",
+      "css": ".ds-nav { display: flex; flex-wrap: wrap; gap: 4px; font: 500 14px/1 Inter, system-ui, sans-serif; } .ds-nav a { padding: 8px 12px; border-radius: 8px; color: var(--muted-foreground, #64748b); text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-nav a:hover { background: var(--secondary, #f1f5f9); color: var(--foreground, #0f172a); } .ds-nav a[aria-current=page] { background: var(--accent, #ecfdf5); color: var(--accent-foreground, #065f46); } .ds-nav a:focus-visible { outline: 2px solid var(--ring, #059669); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Band",
+      "kind": "custom",
+      "description": "Resolution state in one strip: neutral pill (icon carries state colour), number, deadline, masked turnout.",
+      "html": "<div class=\"ds-band\"><div class=\"ds-band-left\"><span class=\"ds-pill\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#047857\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></svg>Głosowanie trwa</span><strong class=\"ds-num\">Uchwała nr 7/2026</strong><span class=\"ds-meta\">Głosowanie do 28 września 2026 20:48</span></div><span class=\"ds-meta\">Frekwencja <b class=\"ds-num ds-masked\">–– / ––</b></span></div>",
+      "css": ".ds-band { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 12px 16px; border: 1px solid var(--border, #e2e8f0); border-radius: 14px; background: var(--card, #fff); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); font: 400 14px/1.4 Inter, system-ui, sans-serif; color: var(--foreground, #0f172a); } .ds-band-left { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; } .ds-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--border, #e2e8f0); border-radius: 8px; font-weight: 500; } .ds-num { font-variant-numeric: tabular-nums; font-weight: 500; } .ds-meta { color: var(--muted-foreground, #64748b); white-space: nowrap; } .ds-masked { color: var(--muted-foreground, #64748b); letter-spacing: 0.1em; font-weight: 600; }"
+    },
+    {
+      "name": "Ballot Options",
+      "kind": "custom",
+      "refersTo": "ballot-option",
+      "description": "Equal, neutral option tiles as a radio group; the selected tile gains mint ground, emerald ring and a check.",
+      "html": "<div class=\"ds-ballot\" role=\"radiogroup\"><label class=\"ds-option\" data-selected=\"true\"><input type=\"radio\" name=\"v\" checked>Za</label><label class=\"ds-option\"><input type=\"radio\" name=\"v\">Przeciw</label><label class=\"ds-option\"><input type=\"radio\" name=\"v\">Wstrzymuję się</label></div>",
+      "css": ".ds-ballot { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; font: 500 16px/1.3 Inter, system-ui, sans-serif; } .ds-option { position: relative; display: flex; align-items: center; justify-content: center; min-height: 96px; padding: 20px 16px; border: 1px solid var(--border, #e2e8f0); border-radius: 10px; background: var(--card, #fff); color: var(--foreground, #0f172a); text-align: center; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); cursor: pointer; transition: border-color 150ms, background-color 150ms; } .ds-option input { position: absolute; opacity: 0; pointer-events: none; } .ds-option:hover { border-color: var(--input, #94a3b8); } .ds-option:focus-within { box-shadow: 0 0 0 3px color-mix(in oklab, #059669 40%, transparent); } .ds-option[data-selected=true] { border-color: var(--primary, #047857); box-shadow: 0 0 0 1px var(--primary, #047857); background: var(--accent, #ecfdf5); color: var(--accent-foreground, #065f46); } .ds-option[data-selected=true]::after { content: ''; position: absolute; top: 10px; right: 10px; width: 10px; height: 6px; border-left: 2px solid var(--primary, #047857); border-bottom: 2px solid var(--primary, #047857); transform: rotate(-45deg); }"
+    },
+    {
+      "name": "Result Tile",
+      "kind": "custom",
+      "description": "An option after the vote: label, tabular percentage, count and a slate bar; the viewer's own choice keeps the emerald ring and bar.",
+      "html": "<div class=\"ds-result\" data-own=\"true\"><div class=\"ds-result-head\"><span>Za</span><small>Twój głos</small></div><div class=\"ds-result-figures\"><strong>56,3%</strong><span>9 głosów</span></div><div class=\"ds-track\"><div class=\"ds-bar\" style=\"width:56.3%\"></div></div></div>",
+      "css": ".ds-result { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border, #e2e8f0); border-radius: 10px; background: var(--card, #fff); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); font: 500 16px/1.3 Inter, system-ui, sans-serif; color: var(--foreground, #0f172a); max-width: 320px; } .ds-result[data-own=true] { border-color: var(--primary, #047857); box-shadow: 0 0 0 1px var(--primary, #047857); } .ds-result-head { display: flex; justify-content: space-between; } .ds-result-head small { font-size: 12px; color: var(--primary, #047857); } .ds-result-figures { display: flex; align-items: baseline; justify-content: space-between; font-variant-numeric: tabular-nums; } .ds-result-figures strong { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; } .ds-result-figures span { font-size: 14px; font-weight: 400; color: var(--muted-foreground, #64748b); } .ds-track { height: 8px; border-radius: 9999px; background: var(--muted, #f1f5f9); overflow: hidden; } .ds-bar { height: 100%; border-radius: 9999px; background: #64748b; transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-result[data-own=true] .ds-bar { background: var(--primary, #047857); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Sala zebrań (The Assembly Hall)",
+    "overview": "Consensia is the bright, orderly room where a housing community meets to decide. Everyone enters through the same door and sits at the same table: the floor is a cool, pale slate, every surface is plain white paper with a fine grey hairline, and nothing on the walls tries to persuade. The room is calm so that the decision on the table is the loudest thing in it. The system is flat and quiet on purpose. Structure comes from white cards on a pale floor, hairlines and generous spacing, not from shadows or colour. One colour, a deep emerald, is reserved for the moments that commit something: the primary action, the active place in the navigation, and the viewer's own choice. On voting surfaces even that restraint tightens, so the room never seems to lean towards an answer. Type is a single workhorse sans (Inter) set in clear, stepped weights; numbers that matter (votes, turnout, percentages) are tabular so they read like a tally sheet.",
+    "keyCharacteristics": [
+      "Pale slate floor, white paper surfaces, 1px hairlines.",
+      "One committed accent (deep emerald); state and wayfinding otherwise neutral.",
+      "Single sans family, hierarchy by size and weight only.",
+      "Tabular numerals for every count.",
+      "Near-flat depth: extra-small shadows that only separate paper from floor."
+    ],
+    "rules": [
+      { "name": "The Committed Emerald Rule", "body": "Emerald marks commitment: the primary action, where you are, and what you chose. It is never decoration and never a state label on its own.", "section": "colors" },
+      { "name": "The Neutral Ballot Rule", "body": "On voting surfaces, options, status pills and wayfinding links stay neutral; emerald appears only on the action button and on the viewer's own choice after selecting it. Nothing may suggest a preferred answer.", "section": "colors" },
+      { "name": "The No-Colour-Only Rule", "body": "Results always carry a label, a percentage and a count next to any bar; colour is reinforcement, never the message.", "section": "colors" },
+      { "name": "The No-Eyebrow Rule", "body": "Headings stand alone. Reference numbers, dates and statuses live in a status band or a meta line, never as a small label above a heading.", "section": "typography" },
+      { "name": "The Paper-On-Floor Rule", "body": "A surface is either floor or paper; there is no third layer except a dialog that must hold focus.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep every voting option visually identical until the viewer selects one (The Neutral Ballot Rule).",
+      "Do use tabular numerals for votes, turnout, percentages and resolution numbers.",
+      "Do restate the choice and its finality in a confirmation dialog before any irreversible action.",
+      "Do keep formal text at 16px with a 70ch measure.",
+      "Do theme browser surfaces: emerald caret, emerald-tinted selection, emerald focus rings."
+    ],
+    "donts": [
+      "Don't put a kicker or eyebrow label above a heading.",
+      "Don't use emerald for status pills or wayfinding links on voting surfaces.",
+      "Don't encode results with colour alone.",
+      "Don't add gradients, glass effects, side stripes or hard offset shadows.",
+      "Don't render counts or percentages before the viewer is allowed to see them, not even hidden."
+    ]
+  }
+}

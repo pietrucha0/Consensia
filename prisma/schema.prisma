@@ -1,0 +1,376 @@
+// Prisma ORM 7 — the connection URL lives in prisma.config.ts, not here.
+// Constraints Prisma cannot express (vote immutability, "vote only while ACTIVE",
+// resolution lifecycle CHECK) live in prisma/sql/governance_constraints.sql and are
+// appended to the init migration.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+/// Mirrors routing.locales in src/i18n/routing.ts.
+enum Locale {
+  en
+  pl
+  es
+  fr
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ResolutionStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum AuditAction {
+  USER_ROLE_CHANGED
+  USER_DISABLED
+  USER_ENABLED
+  PASSWORD_CHANGED
+  ARTICLE_CREATED
+  ARTICLE_UPDATED
+  ARTICLE_PUBLISHED
+  ARTICLE_DELETED
+  RESOLUTION_CREATED
+  RESOLUTION_UPDATED
+  RESOLUTION_OPENED
+  RESOLUTION_CLOSED
+  RESOLUTION_DELETED
+  EMAIL_CHANGED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Identity (Auth.js adapter models + app fields)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id               String    @id @default(cuid())
+  name             String?   @db.VarChar(120)
+  /// Stored trimmed + lower-cased (normalized by the Zod schema) so @unique is case-insensitive in practice.
+  email            String    @unique @db.VarChar(254)
+  /// null = unverified → sign-in refused.
+  emailVerified    DateTime? @db.Timestamptz(3)
+  image            String?   @db.VarChar(2048)
+  /// argon2id hash. null until the email is verified (the pending password lives on the
+  /// VerificationToken) and for adapter-created users.
+  passwordHash     String?   @db.VarChar(255)
+  role             Role      @default(USER)
+  preferredLocale  Locale    @default(en)
+  /// Soft block. Users who voted can never be hard-deleted (see Vote), so admins disable them.
+  disabledAt       DateTime? @db.Timestamptz(3)
+  /// Per-account brute-force lockout (IP rate limiting is handled separately).
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime? @db.Timestamptz(3)
+  /// Email when a resolution opens for voting (opt-out on the account page).
+  notifyNewResolutions Boolean @default(true)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
+
+  accounts           Account[]
+  sessions           Session[]
+  articles           Article[]
+  resolutionsCreated Resolution[]
+  votes              Vote[]
+  auditEntries       AuditLog[]
+  emailChanges       EmailChangeRequest[]
+
+  @@map("users")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Database sessions: revocable server-side (role change, disable, password reset → delete rows).
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime @db.Timestamptz(3)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
+  @@map("sessions")
+}
+
+/// Email-verification tokens. `token` holds the SHA-256 of the emailed value, never the raw token.
+model VerificationToken {
+  /// Normalized email address.
+  identifier   String
+  token        String   @unique
+  expires      DateTime @db.Timestamptz(3)
+  /// Credentials from the sign-up that issued this token, applied to the user only when THIS
+  /// link is confirmed. Each sign-up keeps its own password, so a stranger who registers the
+  /// address first cannot end up owning the account once the real owner verifies it
+  /// (account pre-hijacking).
+  passwordHash String?  @db.VarChar(255)
+  name         String?  @db.VarChar(120)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([identifier, token])
+  @@index([identifier, createdAt(sort: Desc)])
+  @@index([expires])
+  @@map("verification_tokens")
+}
+
+/// Pending change of a signed-in user's email address. The link goes to the NEW address
+/// (proving control of it); only the newest request per user is kept.
+/// `token` holds the SHA-256 of the emailed value, never the raw token.
+model EmailChangeRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  newEmail  String   @db.VarChar(254)
+  token     String   @unique
+  expires   DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
+  @@map("email_change_requests")
+}
+
+/// Password-reset tokens (1 h expiry, single use: deleted on consumption).
+/// `token` holds the SHA-256 of the emailed value, never the raw token.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String   @db.VarChar(254)
+  token     String   @unique
+  expires   DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([email, createdAt(sort: Desc)])
+  @@index([expires])
+  @@map("password_reset_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Articles
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Article {
+  id           String        @id @default(cuid())
+  /// Canonical, locale-independent: /[locale]/articles/[slug]. Must match ^[a-z0-9]+(?:-[a-z0-9]+)*$
+  slug         String        @unique @db.VarChar(160)
+  status       ArticleStatus @default(DRAFT)
+  heroImageUrl String?       @db.VarChar(2048)
+  authorId     String?
+  /// Set when first PUBLISHED; drives sorting and date filters.
+  publishedAt  DateTime?     @db.Timestamptz(3)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
+
+  author       User?                @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  translations ArticleTranslation[]
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([authorId])
+  @@map("articles")
+}
+
+/// One row per locale. Missing locale → reader falls back to the default locale (en).
+model ArticleTranslation {
+  id           String   @id @default(cuid())
+  articleId    String
+  locale       Locale
+  title        String   @db.VarChar(200)
+  summary      String   @db.VarChar(500)
+  /// Block-editor document (Tiptap/ProseMirror JSON). Zod-validated on write,
+  /// rendered through an allow-listed node renderer (no raw HTML).
+  body         Json
+  footer       String?  @db.Text
+  heroImageAlt String?  @db.VarChar(300)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, locale])
+  /// Trigram index for ILIKE '%term%' title search (requires pg_trgm; created in the init migration).
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("article_translations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Resolutions & voting
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Lifecycle DRAFT → ACTIVE → CLOSED (one-way; DB CHECK keeps timestamps consistent with status).
+/// Options/translations are editable only while DRAFT.
+model Resolution {
+  id                 String           @id @default(cuid())
+  /// Human reference as the community numbers it, e.g. "7/2026". Optional, free-form.
+  reference          String?          @db.VarChar(40)
+  status             ResolutionStatus @default(DRAFT)
+  imageUrl           String?          @db.VarChar(2048)
+  attachmentUrl      String?          @db.VarChar(2048)
+  createdById        String?
+  /// Set on DRAFT → ACTIVE.
+  openedAt           DateTime?        @db.Timestamptz(3)
+  /// Optional deadline; votes after it are rejected by the DB trigger.
+  closesAt           DateTime?        @db.Timestamptz(3)
+  /// Set on ACTIVE → CLOSED.
+  closedAt           DateTime?        @db.Timestamptz(3)
+  /// Eligible voters frozen at closing, so a closed resolution's turnout never drifts
+  /// as members join or leave. null while DRAFT/ACTIVE (turnout uses the live count).
+  eligibleVoterCount Int?
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
+
+  createdBy    User?                   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  translations ResolutionTranslation[]
+  options      VoteOption[]
+  votes        Vote[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdById])
+  @@map("resolutions")
+}
+
+model ResolutionTranslation {
+  id           String   @id @default(cuid())
+  resolutionId String
+  locale       Locale
+  title        String   @db.VarChar(300)
+  /// Detailed description / legal justification.
+  description  String   @db.Text
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  resolution Resolution @relation(fields: [resolutionId], references: [id], onDelete: Cascade)
+
+  @@unique([resolutionId, locale])
+  @@map("resolution_translations")
+}
+
+model VoteOption {
+  id           String @id @default(cuid())
+  resolutionId String
+  /// 0-based display order.
+  order        Int
+
+  resolution   Resolution              @relation(fields: [resolutionId], references: [id], onDelete: Cascade)
+  translations VoteOptionTranslation[]
+  votes        Vote[]
+
+  @@unique([resolutionId, order])
+  /// Target of Vote's composite FK: guarantees a vote's option belongs to the voted resolution.
+  @@unique([id, resolutionId])
+  @@map("vote_options")
+}
+
+model VoteOptionTranslation {
+  voteOptionId String
+  locale       Locale
+  /// e.g. "For" / "Za" / "A favor" / "Pour"
+  label        String @db.VarChar(120)
+
+  voteOption VoteOption @relation(fields: [voteOptionId], references: [id], onDelete: Cascade)
+
+  @@id([voteOptionId, locale])
+  @@map("vote_option_translations")
+}
+
+/// Immutable ballot.
+/// - One per (user, resolution): @@unique below.
+/// - Option must belong to the same resolution: composite FK to VoteOption(id, resolutionId).
+/// - UPDATE/DELETE rejected, INSERT only while resolution is ACTIVE: DB triggers.
+/// - Never cascade-deleted: every FK is RESTRICT, so a resolution/user with votes cannot be deleted.
+model Vote {
+  id           String   @id @default(cuid())
+  userId       String
+  resolutionId String
+  voteOptionId String
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  resolution Resolution @relation(fields: [resolutionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  option     VoteOption @relation(fields: [voteOptionId, resolutionId], references: [id, resolutionId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([userId, resolutionId])
+  /// Tally query: GROUP BY voteOptionId WHERE resolutionId = ?
+  @@index([resolutionId, voteOptionId])
+  @@map("votes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Operations
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Append-only record of administrative actions. A DB trigger rejects UPDATE/DELETE
+/// (except the FK nulling actorId when a user row is removed).
+model AuditLog {
+  id          String      @id @default(cuid())
+  /// null = done by the system (e.g. a resolution closed at its deadline).
+  actorId     String?
+  action      AuditAction
+  /// Id of the user / article / resolution acted on; kept after the target is deleted.
+  targetId    String?     @db.VarChar(64)
+  /// Snapshot of what the target was called at the time (email, title, reference).
+  targetLabel String?     @db.VarChar(300)
+  /// Action details, e.g. { "from": "USER", "to": "MODERATOR" }.
+  metadata    Json?
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([targetId])
+  @@map("audit_logs")
+}
+
+/// Fixed-window request counters (per IP / per user), shared by every app instance.
+model RateLimit {
+  /// "<bucket>:<sha256 of the subject>"
+  key         String   @id @db.VarChar(200)
+  count       Int
+  windowStart DateTime @db.Timestamptz(3)
+
+  @@index([windowStart])
+  @@map("rate_limits")
+}

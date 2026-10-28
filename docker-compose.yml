@@ -1,0 +1,86 @@
+# Consensia — production stack on one server (VPS).
+#
+#   cp .env.example .env.production   # fill in the values (see README → Wdrożenie)
+#   docker compose --env-file .env.production up -d --build
+#   docker compose --env-file .env.production run --rm migrate npm run db:seed   # first admin
+#
+# Services: PostgreSQL, one-shot migrations, the app, Caddy (automatic HTTPS) and an
+# hourly housekeeping job. Uploaded images and the database live in named volumes.
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: consensia
+      POSTGRES_USER: consensia
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consensia -d consensia"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: { context: ., target: migrate }
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgresql://consensia:${POSTGRES_PASSWORD}@db:5432/consensia
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
+  app:
+    build: { context: ., target: runner }
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgresql://consensia:${POSTGRES_PASSWORD}@db:5432/consensia
+      AUTH_TRUST_HOST: "true"
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    # Not published: only Caddy talks to the app (per-IP rate limits trust Caddy's headers).
+    expose: ["3000"]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app: { condition: service_healthy }
+
+  cron:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    environment:
+      CRON_SECRET: ${CRON_SECRET:?set CRON_SECRET in .env.production}
+    depends_on:
+      app: { condition: service_healthy }
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          curl -fsS -H "Authorization: Bearer $$CRON_SECRET" http://app:3000/api/cron/maintenance || true
+          echo
+          sleep 3600
+        done
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:
