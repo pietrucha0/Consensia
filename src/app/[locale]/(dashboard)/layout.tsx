@@ -49,10 +49,13 @@ export default async function DashboardLayout({ children, params }: Props) {
           <Link href="/" aria-label="Consensia" className="shrink-0">
             <Logo />
           </Link>
-          <div className="flex items-center gap-3">
-            <Suspense>
-              <LocaleSwitcher />
-            </Suspense>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* On phones the language switcher moves to the second row to leave room here. */}
+            <div className="hidden sm:block">
+              <Suspense>
+                <LocaleSwitcher />
+              </Suspense>
+            </div>
             <Link
               href="/account"
               title={t('nav.account')}
@@ -73,8 +76,13 @@ export default async function DashboardLayout({ children, params }: Props) {
             </form>
           </div>
         </div>
-        <div className="mx-auto max-w-6xl px-4 pb-2">
+        <div className="mx-auto flex max-w-6xl items-start justify-between gap-2 px-4 pb-2">
           <MainNav items={navItems} label={t('nav.mainNavigation')} />
+          <div className="shrink-0 pt-1 sm:hidden">
+            <Suspense>
+              <LocaleSwitcher />
+            </Suspense>
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">

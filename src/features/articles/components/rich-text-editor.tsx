@@ -99,10 +99,26 @@ export function RichTextEditor({ id, labelId, initialContent, onChange, onBlur, 
   );
 }
 
+/** Toolbar state before the editor reports its first selection (nothing active, no history). */
+const IDLE_STATE = {
+  bold: false,
+  italic: false,
+  underline: false,
+  strike: false,
+  h2: false,
+  h3: false,
+  bulletList: false,
+  orderedList: false,
+  blockquote: false,
+  link: false,
+  canUndo: false,
+  canRedo: false,
+};
+
 function Toolbar({ editor }: { editor: Editor | null }) {
   const t = useTranslations('admin.editor');
 
-  const state = useEditorState({
+  const selected = useEditorState({
     editor,
     selector: ({ editor: current }) =>
       current
@@ -123,7 +139,10 @@ function Toolbar({ editor }: { editor: Editor | null }) {
         : null,
   });
 
-  if (!editor || !state) return <div className="h-11 border-b bg-muted/50" aria-hidden />;
+  if (!editor) return <div className="h-11 border-b bg-muted/50" aria-hidden />;
+  // With immediatelyRender: false the selector only runs on the first transaction, so the
+  // toolbar would stay hidden until the user typed; show it idle straight away.
+  const state = selected ?? IDLE_STATE;
 
   const chain = () => editor.chain().focus();
 
