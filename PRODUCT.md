@@ -40,7 +40,7 @@ Voting integrity is enforced by the database itself, not just the interface: one
 - Casting a vote is two steps: select an option, then confirm in a dialog that restates the choice and that it cannot be changed.
 - After voting, the member sees live results (count and percentage per option) plus turnout: votes cast out of eligible members. Before voting, results and turnout are hidden.
 - Terminology (PL): uchwała, głosowanie, głos, „Za” / „Przeciw” / „Wstrzymuję się”, zarząd, członek.
-- **Undecided:** weighted voting by ownership share (udziały) — currently one account = one vote; quorum and majority rules; who is eligible to vote on a given resolution (currently every verified member); registration is open to anyone who verifies an email (invite-only not decided).
+- **Decided (2026-09-25):** one person = one vote, no weighting by ownership share (udziały); every vote counts equally, with no quorum or required majority: results show plain counts, percentages and turnout, and the community reads them; registration stays open to anyone who confirms an email, and admins disable unwanted accounts afterwards (no approval step). Every verified, non-disabled member may vote on every resolution.
 
 ## Brand Commitments
 
