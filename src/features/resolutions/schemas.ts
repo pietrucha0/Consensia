@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { routing, type Locale } from '@/i18n/routing';
-import { httpsUrlField, imageUrlField } from '@/lib/image-url';
+import { documentUrlField, imageUrlField } from '@/lib/image-url';
 
 export const RESOLUTION_MIN_OPTIONS = 2;
 export const RESOLUTION_MAX_OPTIONS = 10;
@@ -24,7 +24,7 @@ export const resolutionFormSchema = z
   .object({
     reference: z.string().trim().max(40, { error: 'tooLong' }),
     imageUrl: imageUrlField,
-    attachmentUrl: httpsUrlField,
+    attachmentUrl: documentUrlField,
     /** datetime-local in APP_TIME_ZONE, or '' for no deadline (closed manually). */
     closesAt: z.string().refine((value) => value === '' || DATETIME_LOCAL.test(value), { error: 'invalid' }),
     translations: z.object({

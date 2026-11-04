@@ -149,6 +149,13 @@
       "body": "Votre compte utilise désormais {email}. Nous n’enverrons plus de messages à cette adresse.",
       "warning": "Si vous n’êtes pas à l’origine de ce changement, contactez immédiatement l’administrateur.",
       "button": "Ouvrir Consensia"
+    },
+    "resolutionReminder": {
+      "subject": "Rappel : votez sur {title}",
+      "preview": "Le vote sur {title} se termine bientôt et votre vote manque encore.",
+      "heading": "Le vote se termine bientôt",
+      "body": "Vous n’avez pas encore voté sur la résolution « {title} ». Après la date limite, les votes ne sont plus acceptés.",
+      "button": "Voter maintenant"
     }
   },
   "dashboard": {
@@ -166,7 +173,8 @@
     "adminResolutions": "Gérer les résolutions",
     "adminUsers": "Membres",
     "adminAudit": "Journal d’activité",
-    "account": "Votre compte"
+    "account": "Votre compte",
+    "pendingVotes": "{count, plural, one {# résolution attend votre vote} other {# résolutions attendent votre vote}}"
   },
   "articles": {
     "title": "Articles",
@@ -273,8 +281,8 @@
       "slug_taken": "Ce slug est déjà utilisé par un autre article.",
       "not_found": "Cet article n'existe plus.",
       "generic": "Une erreur s'est produite. Veuillez réessayer.",
-      "upload_too_large": "Le fichier dépasse 5 Mo.",
-      "upload_invalid_type": "Type de fichier non pris en charge. Utilisez JPG, PNG, WebP, GIF ou AVIF.",
+      "upload_too_large": "Le fichier est trop volumineux (images 5 Mo max., PDF 10 Mo max.).",
+      "upload_invalid_type": "Type de fichier non pris en charge. Images : JPG, PNG, WebP, GIF ou AVIF. Pièces jointes : PDF.",
       "upload_failed": "L'importation a échoué. Veuillez réessayer.",
       "upload_rate_limited": "Trop d’envois en peu de temps. Patientez quelques minutes puis réessayez."
     },
@@ -316,7 +324,7 @@
         "closesAtHint": "Facultatif, heure de {timeZone}. Sans échéance, un modérateur clôture le vote.",
         "image": "Image",
         "attachmentUrl": "Lien vers la pièce jointe",
-        "attachmentHint": "Lien https:// facultatif vers le document complet (PDF, espace partagé).",
+        "attachmentHint": "Téléversez un PDF (10 Mo max.) ou collez un lien https:// vers le document complet.",
         "content": "Contenu",
         "contentHint": "Remplissez au moins une langue. Les options doivent être nommées dans chaque langue remplie.",
         "title": "Titre",
@@ -332,7 +340,11 @@
         "create": "Créer le brouillon",
         "save": "Enregistrer le brouillon",
         "unsavedChanges": "Vous avez des modifications non enregistrées.",
-        "leaveConfirm": "Vous avez des modifications non enregistrées. Quitter quand même cette page ?"
+        "leaveConfirm": "Vous avez des modifications non enregistrées. Quitter quand même cette page ?",
+        "attachment": "Pièce jointe",
+        "uploadPdf": "Téléverser un PDF",
+        "pdfAttached": "PDF joint",
+        "removeAttachment": "Retirer la pièce jointe"
       },
       "errors": {
         "forbidden": "Vous n'avez pas l'autorisation de faire cela.",
@@ -342,6 +354,31 @@
         "incomplete": "Avant d’ouvrir le vote, ajoutez un titre dans au moins une langue et au moins 2 options.",
         "deadline_past": "L’échéance est déjà passée. Modifiez-la avant d’ouvrir le vote.",
         "generic": "Une erreur s'est produite. Veuillez réessayer."
+      },
+      "protocol": {
+        "title": "Procès-verbal",
+        "back": "Retour aux résolutions",
+        "downloadCsv": "Télécharger les votes (CSV)",
+        "print": "Imprimer / enregistrer en PDF",
+        "heading": "Procès-verbal du vote",
+        "opened": "Ouverture du vote",
+        "closed": "Clôture du vote",
+        "deadline": "Date limite",
+        "noDeadline": "Aucune (clôturé par un modérateur)",
+        "preparedBy": "Préparé par",
+        "justification": "Exposé des motifs",
+        "results": "Résultats",
+        "turnout": "Votes exprimés : {votes} sur {eligible} membres ayant droit de vote (participation {percent} %).",
+        "colOption": "Option",
+        "colVotes": "Votes",
+        "colShare": "Part",
+        "votesHeading": "{count, plural, =0 {Votes} one {Votes (# membre)} other {Votes (# membres)}}",
+        "noVotes": "Personne n’a voté.",
+        "colMember": "Membre",
+        "colEmail": "E-mail",
+        "colChoice": "Choix",
+        "colCastAt": "Date du vote",
+        "generated": "Généré par Consensia le {date}."
       }
     },
     "users": {
@@ -502,7 +539,9 @@
       "closed": "Le vote sur cette résolution est clôturé.",
       "invalid_option": "Cette option ne fait pas partie de la résolution.",
       "generic": "Votre vote n'a pas pu être enregistré. Veuillez réessayer."
-    }
+    },
+    "pendingBanner": "{count, plural, one {Une résolution attend votre vote.} other {# résolutions attendent votre vote.}}",
+    "pendingCta": "Aller voter"
   },
   "account": {
     "title": "Votre compte",

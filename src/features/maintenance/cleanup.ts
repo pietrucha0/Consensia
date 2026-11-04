@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { prepareResolutionEmails } from '@/features/resolutions/notifications';
 import { closeExpiredResolutions } from '@/features/resolutions/queries';
 import { prisma } from '@/lib/prisma';
 import { RATE_LIMIT_MAX_WINDOW_MS } from '@/lib/rate-limit';
@@ -10,8 +11,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const UNVERIFIED_ACCOUNT_TTL_MS = 7 * DAY_MS;
 /** Uploads get this long to be attached to a saved article/resolution before counting as orphans. */
 const ORPHAN_UPLOAD_GRACE_MS = DAY_MS;
+/** Members who have not voted are reminded once, when less than this is left before the deadline. */
+const REMINDER_LEAD_MS = DAY_MS;
 
 export type MaintenanceReport = {
+  remindersSent: number;
   expiredSessions: number;
   expiredVerificationTokens: number;
   expiredResetTokens: number;
@@ -38,6 +42,7 @@ export async function runMaintenance(now = new Date()): Promise<MaintenanceRepor
   ]);
 
   return {
+    remindersSent: await sendDeadlineReminders(now),
     expiredSessions: sessions.count,
     expiredVerificationTokens: verificationTokens.count,
     expiredResetTokens: resetTokens.count,
@@ -46,6 +51,37 @@ export async function runMaintenance(now = new Date()): Promise<MaintenanceRepor
     abandonedSignUps: await deleteAbandonedSignUps(now),
     orphanUploads: await deleteOrphanUploads(now),
   };
+}
+
+/**
+ * "Voting ends tomorrow" email for open resolutions with a deadline less than a day away.
+ * The resolution is claimed first (reminderSentAt set only if still empty), so overlapping
+ * runs or several app instances never send the same reminder twice.
+ */
+async function sendDeadlineReminders(now: Date): Promise<number> {
+  const due = await prisma.resolution.findMany({
+    where: {
+      status: 'ACTIVE',
+      reminderSentAt: null,
+      closesAt: { gt: now, lte: new Date(now.getTime() + REMINDER_LEAD_MS) },
+      // Opened less than a lead time ago: the "voting is open" email is still fresh.
+      openedAt: { lte: new Date(now.getTime() - REMINDER_LEAD_MS / 2) },
+    },
+    select: { id: true },
+  });
+
+  let sent = 0;
+  for (const { id } of due) {
+    const claimed = await prisma.resolution.updateMany({
+      where: { id, reminderSentAt: null },
+      data: { reminderSentAt: now },
+    });
+    if (claimed.count !== 1) continue;
+    const send = await prepareResolutionEmails(id, 'reminder');
+    await send();
+    sent += 1;
+  }
+  return sent;
 }
 
 /**

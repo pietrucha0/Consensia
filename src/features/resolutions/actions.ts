@@ -13,7 +13,7 @@ import { getSession, getSessionWithRole } from '@/lib/dal';
 import { prisma } from '@/lib/prisma';
 import { zonedDateTimeToUtc } from '@/lib/time-zone';
 
-import { prepareResolutionOpenedEmails } from './notifications';
+import { prepareResolutionEmails } from './notifications';
 import { countEligibleVoters, resolutionAuditLabel } from './queries';
 import { resolutionFormSchema, voteInputSchema, type ResolutionFormValues } from './schemas';
 
@@ -171,7 +171,7 @@ export async function openResolutionAction(input: unknown): Promise<ResolutionAc
   });
   if (!opened) return { ok: false, error: 'locked' };
 
-  after(await prepareResolutionOpenedEmails(parsed.data.id));
+  after(await prepareResolutionEmails(parsed.data.id, 'opened'));
   revalidateResolutions();
   return { ok: true };
 }

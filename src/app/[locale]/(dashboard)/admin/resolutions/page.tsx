@@ -1,4 +1,4 @@
-import { CircleCheck, ExternalLink, Pencil, Plus } from 'lucide-react';
+import { CircleCheck, ExternalLink, FileText, Pencil, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -119,6 +119,14 @@ export default async function AdminResolutionsPage({ params, searchParams }: Pro
                         </>
                       )}
                       {row.status === 'ACTIVE' && <LifecycleButton kind="close" id={row.id} title={row.title} />}
+                      {row.status === 'CLOSED' && (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/admin/resolutions/${row.id}/protocol`} title={t('protocol.title')}>
+                            <FileText aria-hidden />
+                            <span className="sr-only xl:not-sr-only">{t('protocol.title')}</span>
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

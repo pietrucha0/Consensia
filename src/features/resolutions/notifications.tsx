@@ -10,18 +10,34 @@ import { sendEmailBatch, type Email } from '@/lib/email/send';
 import { prisma } from '@/lib/prisma';
 
 /**
- * "Voting is open" emails for every member who can vote and has not opted out.
- * Rendering needs the request scope (translations), so this prepares everything now and
- * returns the sender for `after()` — opening a resolution never waits on the mail provider.
+ * - `opened`: voting has started — every member who can vote.
+ * - `reminder`: the deadline is near — only members who have not voted yet.
+ * Both respect the "notify me about resolutions" setting on the account page.
  */
-export async function prepareResolutionOpenedEmails(resolutionId: string): Promise<() => Promise<void>> {
+type NotificationKind = 'opened' | 'reminder';
+
+const NAMESPACE = { opened: 'resolutionOpened', reminder: 'resolutionReminder' } as const;
+
+/**
+ * Renders the emails now (translations need the request scope) and returns the sender,
+ * so callers can hand it to `after()` — opening a resolution never waits on the mail provider.
+ */
+export async function prepareResolutionEmails(
+  resolutionId: string,
+  kind: NotificationKind,
+): Promise<() => Promise<void>> {
   const [resolution, recipients] = await Promise.all([
     prisma.resolution.findUnique({
       where: { id: resolutionId },
       select: { reference: true, closesAt: true, translations: { select: { locale: true, title: true } } },
     }),
     prisma.user.findMany({
-      where: { emailVerified: { not: null }, disabledAt: null, notifyNewResolutions: true },
+      where: {
+        emailVerified: { not: null },
+        disabledAt: null,
+        notifyNewResolutions: true,
+        ...(kind === 'reminder' && { votes: { none: { resolutionId } } }),
+      },
       select: { email: true, name: true, preferredLocale: true },
     }),
   ]);
@@ -30,7 +46,7 @@ export async function prepareResolutionOpenedEmails(resolutionId: string): Promi
   const byLocale = new Map<Locale, Awaited<ReturnType<typeof localeStrings>>>();
   for (const locale of routing.locales) {
     if (recipients.some((r) => r.preferredLocale === locale)) {
-      byLocale.set(locale, await localeStrings(locale, resolutionId, resolution));
+      byLocale.set(locale, await localeStrings(locale, kind, resolutionId, resolution));
     }
   }
 
@@ -65,17 +81,19 @@ export async function prepareResolutionOpenedEmails(resolutionId: string): Promi
     try {
       await sendEmailBatch(emails);
     } catch (error) {
-      console.error(`[email] resolution ${resolutionId} announcement failed`, error);
+      console.error(`[email] resolution ${resolutionId} ${kind} emails failed`, error);
     }
   };
 }
 
 async function localeStrings(
   locale: Locale,
+  kind: NotificationKind,
   resolutionId: string,
   resolution: { reference: string | null; closesAt: Date | null; translations: { locale: Locale; title: string }[] },
 ) {
   const t = await getTranslations({ locale, namespace: 'emails' });
+  const ns = NAMESPACE[kind];
   const title = pickTranslation(resolution.translations, locale)?.title ?? '';
   const fullTitle = resolution.reference ? `${resolution.reference} · ${title}` : title;
   const deadline = resolution.closesAt
@@ -89,11 +107,11 @@ async function localeStrings(
     : t('resolutionOpened.noDeadline');
 
   return {
-    subject: t('resolutionOpened.subject', { title: fullTitle }),
-    preview: t('resolutionOpened.preview', { title: fullTitle }),
-    heading: t('resolutionOpened.heading'),
-    body: t('resolutionOpened.body', { title: fullTitle }),
-    button: t('resolutionOpened.button'),
+    subject: t(`${ns}.subject`, { title: fullTitle }),
+    preview: t(`${ns}.preview`, { title: fullTitle }),
+    heading: t(`${ns}.heading`),
+    body: t(`${ns}.body`, { title: fullTitle }),
+    button: t(`${ns}.button`),
     reason: t('resolutionOpened.reason'),
     deadline,
     url: `${env.APP_URL}/${locale}/resolutions/${resolutionId}`,

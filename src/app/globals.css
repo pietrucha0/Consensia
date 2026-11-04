@@ -100,3 +100,13 @@
   pointer-events: none;
   color: var(--muted-foreground);
 }
+
+/* Printing (resolution protocol): paper is white, page margins come from the printer. */
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+  body {
+    background: #fff;
+  }
+}

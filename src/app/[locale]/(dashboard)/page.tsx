@@ -1,13 +1,17 @@
+import { Vote } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { Pagination } from '@/components/layout/pagination';
+import { buttonVariants } from '@/components/ui/button';
 import { ArticleCard } from '@/features/articles/components/article-card';
 import { ArticleFilters } from '@/features/articles/components/article-filters';
-import { Pagination } from '@/components/layout/pagination';
 import { listPublishedArticles } from '@/features/articles/queries';
 import { articleSearchParamsSchema } from '@/features/articles/schemas';
+import { countPendingVotes } from '@/features/resolutions/queries';
+import { Link } from '@/i18n/navigation';
 import { isLocale } from '@/i18n/routing';
 import { verifySession } from '@/lib/dal';
 import { firstParam, type SearchParams } from '@/lib/search-params';
@@ -24,7 +28,7 @@ type Props = {
 
 /** Home: the article feed. */
 export default async function ArticlesPage({ params, searchParams }: Props) {
-  await verifySession();
+  const session = await verifySession();
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -37,9 +41,11 @@ export default async function ArticlesPage({ params, searchParams }: Props) {
     page: firstParam(raw.page),
   });
 
-  const [{ items, total, page, pageCount }, t] = await Promise.all([
+  const [{ items, total, page, pageCount }, t, tResolutions, pendingVotes] = await Promise.all([
     listPublishedArticles(filters, locale),
     getTranslations('articles'),
+    getTranslations('resolutions'),
+    countPendingVotes(session.user.id),
   ]);
 
   const hasFilters = Boolean(filters.q || filters.from || filters.to);
@@ -55,6 +61,18 @@ export default async function ArticlesPage({ params, searchParams }: Props) {
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t('title')}</h1>
         <p className="text-muted-foreground">{t('subtitle')}</p>
       </header>
+
+      {pendingVotes > 0 && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/20 bg-accent px-4 py-3 text-sm text-accent-foreground">
+          <p className="flex items-center gap-2 font-medium">
+            <Vote className="size-4 shrink-0" aria-hidden />
+            {tResolutions('pendingBanner', { count: pendingVotes })}
+          </p>
+          <Link href="/resolutions" className={buttonVariants({ size: 'sm' })}>
+            {tResolutions('pendingCta')}
+          </Link>
+        </section>
+      )}
 
       <Suspense>
         <ArticleFilters />

@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { HeroImageField } from '@/features/articles/components/hero-image-field';
+import { AttachmentField } from '@/features/resolutions/components/attachment-field';
 import { routing, type Locale } from '@/i18n/routing';
 
 import { saveResolutionAction, type ResolutionActionResult } from '../actions';
@@ -54,6 +55,7 @@ export function ResolutionForm({ resolutionId, initialValues, timeZone }: Props)
   const { errors, isDirty } = form.formState;
   const options = useFieldArray({ control: form.control, name: 'options' });
   const imageUrl = useWatch({ control: form.control, name: 'imageUrl' });
+  const attachmentUrl = useWatch({ control: form.control, name: 'attachmentUrl' });
   const titles = useWatch({ control: form.control, name: routing.locales.map((l) => `translations.${l}.title` as const) });
 
   useUnsavedChangesGuard(isDirty && !pending, t('form.leaveConfirm'));
@@ -232,14 +234,15 @@ export function ResolutionForm({ resolutionId, initialValues, timeZone }: Props)
             >
               {(a11y) => <Input {...a11y} type="datetime-local" {...form.register('closesAt')} />}
             </FormField>
-            <FormField
-              id="attachmentUrl"
-              label={t('form.attachmentUrl')}
-              hint={t('form.attachmentHint')}
-              error={validationMessage(errors.attachmentUrl?.message)}
-            >
-              {(a11y) => <Input {...a11y} type="url" inputMode="url" placeholder="https://" {...form.register('attachmentUrl')} />}
-            </FormField>
+            <div className="grid gap-2">
+              <span className="text-sm leading-none font-medium">{t('form.attachment')}</span>
+              <AttachmentField
+                value={attachmentUrl}
+                onChange={(url) => form.setValue('attachmentUrl', url, { shouldDirty: true, shouldValidate: true })}
+                error={validationMessage(errors.attachmentUrl?.message)}
+                inputProps={form.register('attachmentUrl')}
+              />
+            </div>
             <div className="grid gap-2">
               <span className="text-sm leading-none font-medium">{t('form.image')}</span>
               <HeroImageField

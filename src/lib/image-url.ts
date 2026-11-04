@@ -18,9 +18,12 @@ export const imageUrlField = z
   .max(2048, { error: 'tooLong' })
   .refine((value) => value === '' || UPLOAD_URL_PATTERN.test(value) || isHttpsUrl(value), { error: 'urlInvalid' });
 
-/** External https:// link (documents, attachments); empty string = none. */
-export const httpsUrlField = z
+/** Uploaded PDFs served by /api/uploads/[file]. */
+export const DOCUMENT_URL_PATTERN = /^\/api\/uploads\/[0-9a-f-]{36}\.pdf$/;
+
+/** Uploaded PDF or external https:// link (attachments); empty string = none. */
+export const documentUrlField = z
   .string()
   .trim()
   .max(2048, { error: 'tooLong' })
-  .refine((value) => value === '' || isHttpsUrl(value), { error: 'urlInvalid' });
+  .refine((value) => value === '' || DOCUMENT_URL_PATTERN.test(value) || isHttpsUrl(value), { error: 'urlInvalid' });

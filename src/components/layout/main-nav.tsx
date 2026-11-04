@@ -8,6 +8,8 @@ export type NavItem = {
   label: string;
   /** Extra path prefixes that mark this item active (e.g. "/articles" for the home feed). */
   alsoActiveOn?: string[];
+  /** Count shown next to the label (e.g. resolutions awaiting the viewer's vote). */
+  badge?: { count: number; label: string };
 };
 
 function isActive(pathname: string, item: NavItem): boolean {
@@ -35,6 +37,17 @@ export function MainNav({ items, label }: { items: NavItem[]; label: string }) {
             )}
           >
             {item.label}
+            {item.badge && item.badge.count > 0 && (
+              <>
+                <span
+                  aria-hidden
+                  className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs leading-5 font-semibold text-primary-foreground tabular-nums"
+                >
+                  {item.badge.count}
+                </span>
+                <span className="sr-only">{`, ${item.badge.label}`}</span>
+              </>
+            )}
           </Link>
         );
       })}

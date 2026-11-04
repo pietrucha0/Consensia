@@ -258,6 +258,8 @@ model Resolution {
   /// Eligible voters frozen at closing, so a closed resolution's turnout never drifts
   /// as members join or leave. null while DRAFT/ACTIVE (turnout uses the live count).
   eligibleVoterCount Int?
+  /// When the "deadline tomorrow" reminder went out (at most once per resolution).
+  reminderSentAt     DateTime?        @db.Timestamptz(3)
   createdAt          DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
 

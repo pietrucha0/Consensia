@@ -2,18 +2,13 @@
 
 import { CircleAlert, ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useId, useRef, useState, type ComponentProps } from 'react';
+import { useId, type ComponentProps } from 'react';
 
 import { FormField } from '@/components/form/form-field';
+import { UPLOAD_ACCEPT, useFileUpload } from '@/components/form/use-file-upload';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
-const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/avif';
-
-const UPLOAD_ERRORS = ['upload_rate_limited', 'upload_too_large', 'upload_invalid_type', 'upload_failed'] as const;
-type UploadError = (typeof UPLOAD_ERRORS)[number];
 
 type Props = {
   value: string;
@@ -25,35 +20,8 @@ type Props = {
 
 export function HeroImageField({ value, onChange, error, inputProps }: Props) {
   const t = useTranslations('admin');
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<UploadError | null>(null);
+  const { fileInput, uploading, error: uploadError, upload } = useFileUpload('image', onChange);
   const id = useId();
-
-  const upload = async (file: File) => {
-    setUploadError(null);
-    if (file.size > MAX_UPLOAD_BYTES) {
-      setUploadError('upload_too_large');
-      return;
-    }
-    setUploading(true);
-    try {
-      const body = new FormData();
-      body.append('file', file);
-      const response = await fetch('/api/uploads', { method: 'POST', body });
-      const data: unknown = await response.json().catch(() => null);
-      if (response.ok && isUploadSuccess(data)) {
-        onChange(data.url);
-      } else {
-        setUploadError(isUploadFailure(data) ? data.error : 'upload_failed');
-      }
-    } catch {
-      setUploadError('upload_failed');
-    } finally {
-      setUploading(false);
-      if (fileInput.current) fileInput.current.value = '';
-    }
-  };
 
   return (
     <div className="grid gap-3">
@@ -72,7 +40,7 @@ export function HeroImageField({ value, onChange, error, inputProps }: Props) {
           ref={fileInput}
           id={`${id}-file`}
           type="file"
-          accept={ACCEPT}
+          accept={UPLOAD_ACCEPT.image}
           className="sr-only"
           tabIndex={-1}
           onChange={(e) => {
@@ -103,18 +71,5 @@ export function HeroImageField({ value, onChange, error, inputProps }: Props) {
         {(a11y) => <Input {...a11y} type="url" inputMode="url" placeholder="https://" {...inputProps} />}
       </FormField>
     </div>
-  );
-}
-
-function isUploadSuccess(data: unknown): data is { url: string } {
-  return typeof data === 'object' && data !== null && 'url' in data && typeof data.url === 'string';
-}
-
-function isUploadFailure(data: unknown): data is { error: UploadError } {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'error' in data &&
-    UPLOAD_ERRORS.some((code) => code === data.error)
   );
 }

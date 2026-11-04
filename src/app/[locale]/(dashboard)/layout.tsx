@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { signOutAction } from '@/features/auth/actions';
 import { Link } from '@/i18n/navigation';
 import { isLocale, routing } from '@/i18n/routing';
+import { countPendingVotes } from '@/features/resolutions/queries';
 import { verifySession } from '@/lib/dal';
 
 type Props = {
@@ -21,12 +22,16 @@ type Props = {
 export default async function DashboardLayout({ children, params }: Props) {
   const session = await verifySession();
   const { locale } = await params;
-  const t = await getTranslations();
+  const [t, pendingVotes] = await Promise.all([getTranslations(), countPendingVotes(session.user.id)]);
 
   const isEditor = session.user.role === 'ADMIN' || session.user.role === 'MODERATOR';
   const navItems: NavItem[] = [
     { href: '/', label: t('nav.articles'), alsoActiveOn: ['/articles'] },
-    { href: '/resolutions', label: t('nav.resolutions') },
+    {
+      href: '/resolutions',
+      label: t('nav.resolutions'),
+      badge: { count: pendingVotes, label: t('nav.pendingVotes', { count: pendingVotes }) },
+    },
   ];
   if (isEditor) navItems.push({ href: '/admin/resolutions', label: t('nav.adminResolutions') });
   if (session.user.role === 'ADMIN') {
@@ -43,7 +48,7 @@ export default async function DashboardLayout({ children, params }: Props) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b bg-card">
+      <header className="border-b bg-card print:hidden">
         {/* Two rows: the admin navigation is too long to share a row with the account controls. */}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 pt-3 pb-2">
           <Link href="/" aria-label="Consensia" className="shrink-0">
@@ -85,7 +90,7 @@ export default async function DashboardLayout({ children, params }: Props) {
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 print:p-0">
         {/* Only after the session check above — guests never receive these strings. */}
         <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>
       </main>

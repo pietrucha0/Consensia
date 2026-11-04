@@ -5,21 +5,26 @@ import path from 'node:path';
 
 import { env } from '@/env';
 
-import { IMAGE_MIME_BY_EXT, type ImageType } from './image-type';
+import { UPLOAD_MIME_BY_EXT, type UploadType } from './image-type';
 
 /**
- * Local-disk storage for uploaded images, kept OUTSIDE /public so files are only
- * reachable through the authenticated /api/uploads/[file] route.
+ * Local-disk storage for uploaded images and PDF attachments, kept OUTSIDE /public so
+ * files are only reachable through the authenticated /api/uploads/[file] route.
  *
- * Swap this module for an S3/R2/Blob driver (same three functions) when deploying to
+ * Swap this module for an S3/R2/Blob driver (same functions) when deploying to
  * serverless hosting, where the local disk is not persistent.
  */
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 export const UPLOAD_URL_PREFIX = '/api/uploads/';
 
 /** `<uuid>.<ext>` — the only names ever written or read (blocks path traversal). */
-const FILE_NAME_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|gif|webp|avif)$/;
+const FILE_NAME_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|gif|webp|avif|pdf)$/;
+
+function isUploadExt(value: string | undefined): value is UploadType['ext'] {
+  return value !== undefined && Object.hasOwn(UPLOAD_MIME_BY_EXT, value);
+}
 
 // Runtime data, not code: keep the bundler from tracing (and shipping) the whole project.
 const uploadDir = path.resolve(/* turbopackIgnore: true */ process.cwd(), env.UPLOAD_DIR);
@@ -32,19 +37,21 @@ export function isValidUploadName(name: string): boolean {
   return FILE_NAME_PATTERN.test(name);
 }
 
-export async function saveUpload(bytes: Uint8Array, type: ImageType): Promise<string> {
+export async function saveUpload(bytes: Uint8Array, type: UploadType): Promise<string> {
   const name = `${crypto.randomUUID()}.${type.ext}`;
   await mkdir(uploadDir, { recursive: true });
   await writeFile(uploadPath(name), bytes, { flag: 'wx' });
   return `${UPLOAD_URL_PREFIX}${name}`;
 }
 
-export async function readUpload(name: string): Promise<{ bytes: Buffer; mime: string } | null> {
-  const match = FILE_NAME_PATTERN.exec(name);
-  if (!match?.[1]) return null;
+export async function readUpload(
+  name: string,
+): Promise<{ bytes: Buffer; mime: string; ext: UploadType['ext'] } | null> {
+  const ext = FILE_NAME_PATTERN.exec(name)?.[1];
+  if (!isUploadExt(ext)) return null;
   try {
     const bytes = await readFile(uploadPath(name));
-    return { bytes, mime: IMAGE_MIME_BY_EXT[match[1] as ImageType['ext']] };
+    return { bytes, mime: UPLOAD_MIME_BY_EXT[ext], ext };
   } catch {
     return null;
   }

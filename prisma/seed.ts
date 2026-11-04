@@ -246,9 +246,10 @@ async function seedDemoResolutions(authorId: string): Promise<void> {
   if (forId && againstId) {
     await prisma.vote.createMany({
       data: [
-        { userId: members[0]!.id, resolutionId: closed.id, voteOptionId: forId },
-        { userId: members[1]!.id, resolutionId: closed.id, voteOptionId: forId },
-        { userId: members[2]!.id, resolutionId: closed.id, voteOptionId: againstId },
+        // Cast while the resolution was open (between opening and closing), as in real life.
+        { userId: members[0]!.id, resolutionId: closed.id, voteOptionId: forId, createdAt: daysAgo(18) },
+        { userId: members[1]!.id, resolutionId: closed.id, voteOptionId: forId, createdAt: daysAgo(15) },
+        { userId: members[2]!.id, resolutionId: closed.id, voteOptionId: againstId, createdAt: daysAgo(9) },
       ],
     });
   }

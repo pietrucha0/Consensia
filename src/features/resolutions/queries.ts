@@ -73,6 +73,17 @@ export async function resolutionAuditLabel(id: string, db: Db = prisma): Promise
 
 // ── Member views ──────────────────────────────────────────────────────────────
 
+/** Open resolutions (deadline not passed) the viewer has not voted on yet. */
+export function countPendingVotes(viewerId: string): Promise<number> {
+  return prisma.resolution.count({
+    where: {
+      status: 'ACTIVE',
+      OR: [{ closesAt: null }, { closesAt: { gt: new Date() } }],
+      votes: { none: { userId: viewerId } },
+    },
+  });
+}
+
 export type ResolutionListItem = {
   id: string;
   reference: string | null;
@@ -215,6 +226,90 @@ async function computeResults(
     eligible: liveEligible,
     eligibleIsFinal: frozenEligible !== null,
   });
+}
+
+// ── Protocol (closed resolutions, for the board) ──────────────────────────────
+
+export type ProtocolVote = { name: string | null; email: string; optionId: string; castAt: Date };
+
+export type ResolutionProtocol = {
+  id: string;
+  reference: string | null;
+  title: string;
+  description: string;
+  contentLocale: Locale;
+  createdBy: string | null;
+  openedAt: Date;
+  closesAt: Date | null;
+  closedAt: Date;
+  options: { id: string; label: string }[];
+  results: ResolutionResults;
+  /** The ballot is open: every vote with its voter, in alphabetical order. */
+  votes: ProtocolVote[];
+};
+
+/**
+ * Record of a CLOSED resolution: wording, results, turnout and the named list of votes.
+ * Only closed ones — while voting runs, a moderator who has not voted yet must not see
+ * the tally. Callers check `requireRole(['ADMIN', 'MODERATOR'])`.
+ */
+export async function getResolutionProtocol(id: string, locale: Locale): Promise<ResolutionProtocol | null> {
+  await closeExpiredResolutions();
+  const row = await prisma.resolution.findFirst({
+    where: { id, status: 'CLOSED' },
+    select: {
+      id: true,
+      reference: true,
+      openedAt: true,
+      closesAt: true,
+      closedAt: true,
+      eligibleVoterCount: true,
+      createdBy: { select: { name: true, email: true } },
+      translations: { select: { locale: true, title: true, description: true } },
+      options: {
+        orderBy: { order: 'asc' },
+        select: { id: true, order: true, translations: { select: { locale: true, label: true } } },
+      },
+      votes: {
+        select: { voteOptionId: true, createdAt: true, user: { select: { name: true, email: true } } },
+      },
+    },
+  });
+  if (!row?.openedAt || !row.closedAt) return null;
+  const t = pickTranslation(row.translations, locale);
+  if (!t) return null;
+
+  const optionIds = row.options.map((o) => o.id);
+  const counts = new Map<string, number>();
+  for (const vote of row.votes) counts.set(vote.voteOptionId, (counts.get(vote.voteOptionId) ?? 0) + 1);
+
+  const collator = new Intl.Collator(locale, { sensitivity: 'base' });
+  const votes = row.votes
+    .map((v) => ({ name: v.user.name, email: v.user.email, optionId: v.voteOptionId, castAt: v.createdAt }))
+    .sort((a, b) => collator.compare(a.name ?? a.email, b.name ?? b.email));
+
+  return {
+    id: row.id,
+    reference: row.reference,
+    title: t.title,
+    description: t.description,
+    contentLocale: t.locale,
+    createdBy: row.createdBy ? (row.createdBy.name ?? row.createdBy.email) : null,
+    openedAt: row.openedAt,
+    closesAt: row.closesAt,
+    closedAt: row.closedAt,
+    options: row.options.map((o) => ({
+      id: o.id,
+      label: pickTranslation(o.translations, locale)?.label ?? `#${o.order + 1}`,
+    })),
+    results: tallyVotes({
+      optionIds,
+      counts,
+      eligible: row.eligibleVoterCount ?? row.votes.length,
+      eligibleIsFinal: true,
+    }),
+    votes,
+  };
 }
 
 // ── Moderator views ───────────────────────────────────────────────────────────

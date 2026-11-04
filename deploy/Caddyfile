@@ -3,9 +3,9 @@
 {$DOMAIN} {
 	encode zstd gzip
 
-	# Uploads are capped at 5 MB by the app; leave headroom for multipart overhead.
+	# Uploads are capped by the app (images 5 MB, PDF 10 MB); leave headroom for multipart overhead.
 	request_body {
-		max_size 6MB
+		max_size 11MB
 	}
 
 	reverse_proxy app:3000 {

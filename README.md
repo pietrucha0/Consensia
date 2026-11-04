@@ -26,8 +26,8 @@ Bez `RESEND_API_KEY` e-maile (weryfikacja, reset hasła, powiadomienia) są wypi
 - **Artykuły** — strona główna: wyszukiwanie po tytule (z opóźnieniem), sortowanie, filtr dat (w strefie `APP_TIME_ZONE`), paginacja. Strona artykułu z obrazem, treścią i stopką. Brak tłumaczenia → wersja angielska (lub inna) z informacją.
 - **CMS artykułów** (`/admin/articles`, tylko ADMIN) — tworzenie, edycja, usuwanie; edytor Tiptap; zakładki językowe; obraz z adresu https:// lub wgrany plik.
 - **Pliki** — wgrywane do `UPLOAD_DIR` (poza `/public`), serwowane tylko zalogowanym. Na hostingu serverless podmień `src/lib/storage.ts` na S3/R2/Blob.
-- **Uchwały i głosowanie** (`/resolutions`) — lista (trwa / zakończone), strona uchwały z paskiem stanu, kartą do głosowania (wybór + potwierdzenie) i wynikami na żywo z frekwencją po oddaniu głosu. Wyniki są liczone na serwerze tylko dla osób, które już głosowały (lub po zamknięciu).
-- **Panel moderatora** (`/admin/resolutions`, MODERATOR i ADMIN) — szkice z opcjami w 4 językach, otwieranie, zamykanie, usuwanie szkiców. Po otwarciu treść, opcje i termin są zablokowane także w bazie (triggery). Otwarcie głosowania wysyła e-mail do członków, którzy mają włączone powiadomienia.
+- **Uchwały i głosowanie** (`/resolutions`) — licznik „do zagłosowania” w menu i baner na stronie głównej; lista (trwa / zakończone), strona uchwały z paskiem stanu, kartą do głosowania (wybór + potwierdzenie) i wynikami na żywo z frekwencją po oddaniu głosu. Wyniki są liczone na serwerze tylko dla osób, które już głosowały (lub po zamknięciu).
+- **Panel moderatora** (`/admin/resolutions`, MODERATOR i ADMIN) — szkice z opcjami w 4 językach, otwieranie, zamykanie, usuwanie szkiców. Po otwarciu treść, opcje i termin są zablokowane także w bazie (triggery). Otwarcie głosowania wysyła e-mail do członków, którzy mają włączone powiadomienia, a dobę przed terminem przychodzi przypomnienie do osób, które jeszcze nie głosowały. Załącznik: wgrany PDF (do 10 MB) albo link. Po zamknięciu: **protokół** do wydruku/PDF z wynikami, frekwencją i imienną listą głosów oraz eksport głosów do CSV (Excel).
 - **Członkowie** (`/admin/users`, tylko ADMIN) — lista z wyszukiwaniem i filtrami, nadawanie ról (z potwierdzeniem), blokowanie i odblokowywanie kont. Zablokowanie wylogowuje ze wszystkich urządzeń. Baza nie pozwala usunąć ani zablokować ostatniego aktywnego administratora.
 - **Dziennik zmian** (`/admin/audit`, tylko ADMIN) — kto, co i kiedy: role, blokady, hasła, e-maile, artykuły, uchwały (także automatyczne zamknięcie po terminie). Wpisów nie da się zmienić ani usunąć (trigger).
 - **Konto** (`/account`, każdy) — imię, język e-maili, powiadomienia o uchwałach, zmiana hasła (wylogowuje inne urządzenia), zmiana e-maila (link na nowy adres + powiadomienie na stary), wylogowanie innych urządzeń.
@@ -57,7 +57,7 @@ Kopie zapasowe: wolumeny `pgdata` (baza) i `uploads` (obrazy), np. `docker compo
 ## Utrzymanie
 
 - `GET /api/health` — stan aplikacji i bazy (dla load balancera / Dockera).
-- `GET|POST /api/cron/maintenance` z `Authorization: Bearer $CRON_SECRET` — co godzinę (w Dockerze robi to usługa `cron`): zamyka uchwały po terminie, usuwa wygasłe sesje i linki, niepotwierdzone rejestracje starsze niż 7 dni oraz osierocone pliki starsze niż doba.
+- `GET|POST /api/cron/maintenance` z `Authorization: Bearer $CRON_SECRET` — co godzinę (w Dockerze robi to usługa `cron`): zamyka uchwały po terminie, wysyła przypomnienia o kończącym się głosowaniu, usuwa wygasłe sesje i linki, niepotwierdzone rejestracje starsze niż 7 dni oraz osierocone pliki starsze niż doba.
 
 ## Testy
 

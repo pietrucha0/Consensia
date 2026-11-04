@@ -149,6 +149,13 @@
       "body": "Twoje konto używa teraz adresu {email}. Na ten adres nie będziemy już wysyłać wiadomości.",
       "warning": "Jeśli to nie Ty, natychmiast skontaktuj się z administratorem.",
       "button": "Otwórz Consensię"
+    },
+    "resolutionReminder": {
+      "subject": "Przypomnienie: zagłosuj — {title}",
+      "preview": "Głosowanie nad {title} wkrótce się kończy, a Twojego głosu jeszcze nie ma.",
+      "heading": "Głosowanie wkrótce się kończy",
+      "body": "Nie oddano jeszcze Twojego głosu w sprawie uchwały „{title}”. Po terminie głosy nie są już przyjmowane.",
+      "button": "Zagłosuj teraz"
     }
   },
   "dashboard": {
@@ -166,7 +173,8 @@
     "adminResolutions": "Zarządzaj uchwałami",
     "adminUsers": "Członkowie",
     "adminAudit": "Dziennik zmian",
-    "account": "Twoje konto"
+    "account": "Twoje konto",
+    "pendingVotes": "{count, plural, one {# uchwała czeka na Twój głos} few {# uchwały czekają na Twój głos} many {# uchwał czeka na Twój głos} other {# uchwały czekają na Twój głos}}"
   },
   "articles": {
     "title": "Artykuły",
@@ -273,8 +281,8 @@
       "slug_taken": "Ten adres jest już używany przez inny artykuł.",
       "not_found": "Ten artykuł już nie istnieje.",
       "generic": "Coś poszło nie tak. Spróbuj ponownie.",
-      "upload_too_large": "Plik jest większy niż 5 MB.",
-      "upload_invalid_type": "Nieobsługiwany typ pliku. Użyj JPG, PNG, WebP, GIF lub AVIF.",
+      "upload_too_large": "Plik jest za duży (zdjęcia do 5 MB, PDF do 10 MB).",
+      "upload_invalid_type": "Nieobsługiwany typ pliku. Zdjęcia: JPG, PNG, WebP, GIF lub AVIF. Załączniki: PDF.",
       "upload_failed": "Nie udało się wgrać pliku. Spróbuj ponownie.",
       "upload_rate_limited": "Zbyt wiele plików w krótkim czasie. Odczekaj kilka minut i spróbuj ponownie."
     },
@@ -316,7 +324,7 @@
         "closesAtHint": "Opcjonalnie, czas {timeZone}. Bez terminu głosowanie zamyka moderator.",
         "image": "Obraz",
         "attachmentUrl": "Link do załącznika",
-        "attachmentHint": "Opcjonalny link https:// do pełnego dokumentu (PDF, dysk).",
+        "attachmentHint": "Wgraj PDF (do 10 MB) albo wklej link https:// do pełnego dokumentu.",
         "content": "Treść",
         "contentHint": "Uzupełnij co najmniej jeden język. Opcje muszą mieć nazwę w każdym uzupełnionym języku.",
         "title": "Tytuł",
@@ -332,7 +340,11 @@
         "create": "Utwórz szkic",
         "save": "Zapisz szkic",
         "unsavedChanges": "Masz niezapisane zmiany.",
-        "leaveConfirm": "Masz niezapisane zmiany. Czy na pewno chcesz opuścić tę stronę?"
+        "leaveConfirm": "Masz niezapisane zmiany. Czy na pewno chcesz opuścić tę stronę?",
+        "attachment": "Załącznik",
+        "uploadPdf": "Wgraj PDF",
+        "pdfAttached": "Dołączono plik PDF",
+        "removeAttachment": "Usuń załącznik"
       },
       "errors": {
         "forbidden": "Nie masz uprawnień do tej operacji.",
@@ -342,6 +354,31 @@
         "incomplete": "Przed otwarciem głosowania dodaj tytuł w co najmniej jednym języku i co najmniej 2 opcje.",
         "deadline_past": "Termin głosowania już minął. Zmień go przed otwarciem głosowania.",
         "generic": "Coś poszło nie tak. Spróbuj ponownie."
+      },
+      "protocol": {
+        "title": "Protokół",
+        "back": "Wróć do uchwał",
+        "downloadCsv": "Pobierz głosy (CSV)",
+        "print": "Drukuj / zapisz jako PDF",
+        "heading": "Protokół z głosowania",
+        "opened": "Otwarcie głosowania",
+        "closed": "Zamknięcie głosowania",
+        "deadline": "Termin",
+        "noDeadline": "Brak (zamknięte przez moderatora)",
+        "preparedBy": "Przygotowanie",
+        "justification": "Uzasadnienie",
+        "results": "Wyniki",
+        "turnout": "Oddane głosy: {votes} z {eligible} uprawnionych (frekwencja {percent}%).",
+        "colOption": "Opcja",
+        "colVotes": "Głosy",
+        "colShare": "Udział",
+        "votesHeading": "{count, plural, =0 {Głosy} one {Głosy (# osoba)} few {Głosy (# osoby)} many {Głosy (# osób)} other {Głosy (# osoby)}}",
+        "noVotes": "Nikt nie zagłosował.",
+        "colMember": "Osoba",
+        "colEmail": "E-mail",
+        "colChoice": "Wybór",
+        "colCastAt": "Data głosu",
+        "generated": "Wygenerowano w Consensii {date}."
       }
     },
     "users": {
@@ -502,7 +539,9 @@
       "closed": "Głosowanie nad tą uchwałą zostało zakończone.",
       "invalid_option": "Ta opcja nie należy do uchwały.",
       "generic": "Nie udało się zapisać głosu. Spróbuj ponownie."
-    }
+    },
+    "pendingBanner": "{count, plural, one {Jedna uchwała czeka na Twój głos.} few {# uchwały czekają na Twój głos.} many {# uchwał czeka na Twój głos.} other {# uchwały czekają na Twój głos.}}",
+    "pendingCta": "Przejdź do głosowania"
   },
   "account": {
     "title": "Twoje konto",
